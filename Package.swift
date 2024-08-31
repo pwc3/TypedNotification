@@ -4,6 +4,7 @@
 //  TypedNotification
 //
 //  Copyright (c) 2019-2020 Rocket Insights, Inc.
+//  Copyright (c) 2024 Anodized Software, Inc.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -30,33 +31,40 @@ let package = Package(
     name: "TypedNotification",
     platforms: [
         .macOS(.v10_15),
-        .iOS(.v13)
+        .iOS(.v13),
     ],
     products: [
         .library(
             name: "TypedNotification",
-            targets: ["TypedNotification"]),
+            targets: ["TypedNotification"]
+        ),
         .library(
             name: "TypedNotificationTestHelpers",
-            targets: ["TypedNotificationTestHelpers"]),
+            targets: ["TypedNotificationTestHelpers"]
+        ),
         .library(
             name: "TypedNotification-Dynamic",
             type: .dynamic,
-            targets: ["TypedNotification"]),
+            targets: ["TypedNotification"]
+        ),
         .library(
             name: "TypedNotificationTestHelpers-Dynamic",
             type: .dynamic,
-            targets: ["TypedNotificationTestHelpers"])
+            targets: ["TypedNotificationTestHelpers"]
+        ),
     ],
     targets: [
         .target(
             name: "TypedNotification",
-            dependencies: []),
+            dependencies: []
+        ),
         .target(
             name: "TypedNotificationTestHelpers",
-            dependencies: ["TypedNotification"]),
+            dependencies: ["TypedNotification"]
+        ),
         .testTarget(
             name: "TypedNotificationTests",
-            dependencies: ["TypedNotification", "TypedNotificationTestHelpers"])
+            dependencies: ["TypedNotification", "TypedNotificationTestHelpers"]
+        ),
     ]
 )

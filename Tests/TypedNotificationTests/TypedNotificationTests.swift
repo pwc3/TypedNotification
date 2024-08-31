@@ -3,6 +3,7 @@
 //  TypedNotificationTests
 //
 //  Copyright (c) 2019-2020 Rocket Insights, Inc.
+//  Copyright (c) 2024 Anodized Software, Inc.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,6 @@ import TypedNotificationTestHelpers
 import XCTest
 
 class TypedNotificationTests: XCTestCase {
-
     private var token: NotificationToken?
 
     private var cancellable: AnyCancellable?
@@ -98,7 +98,7 @@ class TypedNotificationTests: XCTestCase {
         let exp = expectation(description: "notification received")
 
         // Map from TestNotification to String, filtering out TestNotification instances with value == "drop"
-        token = NotificationCenter.default.addObserver(for: TestNotification.self, queue: .main, compactMap: { (notification) -> String? in
+        token = NotificationCenter.default.addObserver(for: TestNotification.self, queue: .main, compactMap: { notification -> String? in
             guard notification.value != "drop" else {
                 return nil
             }

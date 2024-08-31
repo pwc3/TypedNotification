@@ -3,6 +3,7 @@
 //  TypedNotification
 //
 //  Copyright (c) 2019-2020 Rocket Insights, Inc.
+//  Copyright (c) 2024 Anodized Software, Inc.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a
 //  copy of this software and associated documentation files (the "Software"),
@@ -32,30 +33,28 @@ let kNotificationKey = "notification"
 
 /// The `TypedNotification` protocol defines the properties of a strongly typed notification. The `name` property will be automatically generated from the type's name, but can be modified if needed.
 public protocol TypedNotification {
-
     /// The name of the notification to be used as an identifier
     static var name: String { get }
 }
 
 /// Default implementation of protocol
-extension TypedNotification {
-
+public extension TypedNotification {
     /// The name of the notification, defaulting to the type name
-    public static var name: String {
+    static var name: String {
         return "\(Self.self)"
     }
 
     /// The name of the notification for Foundation methods. Defaults to the value of the static `name` field.
-    public static var notificationName: Notification.Name {
-        return Notification.Name(Self.name)
+    static var notificationName: Notification.Name {
+        return Notification.Name(name)
     }
 
     /// Creates a Foundation `Notification` with the specified sender.
-    func notification(withSender sender: Any) -> Notification {
+    internal func notification(withSender sender: Any?) -> Notification {
         return Notification(name: Self.notificationName, object: sender, userInfo: [kNotificationKey: self])
     }
 
-    public static func unpack(from notification: Notification) -> Self? {
+    static func unpack(from notification: Notification) -> Self? {
         guard let typedNotification = notification.userInfo?[kNotificationKey] as? Self else {
             return nil
         }
@@ -65,7 +64,6 @@ extension TypedNotification {
 
 /// An opaque `NotificationToken` used to add and remove observers of typed notifications. The object retains the token returned by `NotificationCenter.addObserver(for:object:queue:)` as well as the `NotificationCenter`. When the object is deallocated, we deregister the observer from the retained `NotificationCenter` using the retained token.
 public class NotificationToken {
-
     /// The token returned by `NotificationCenter`.
     fileprivate let token: NSObjectProtocol
 
@@ -85,8 +83,7 @@ public class NotificationToken {
 }
 
 /// TypedNotification extensions to NotificationCenter
-extension NotificationCenter {
-
+public extension NotificationCenter {
     /**
      Post a `TypedNotification` from the specified sender.
 
@@ -94,7 +91,7 @@ extension NotificationCenter {
          - notification: the notification to post
          - sender: the sender of the notification
      */
-    public func post<T: TypedNotification>(_ notification: T, from sender: Any) {
+    func post<T: TypedNotification>(_ notification: T, from sender: Any?) {
         post(notification.notification(withSender: sender))
     }
 
@@ -138,12 +135,12 @@ extension NotificationCenter {
      - Returns:
          A `NotificationToken` object. The observer is automatically deregistered when this token object is deallocated, so be sure to retain a reference to it.
      */
-    public func addObserver<T: TypedNotification>(for type: T.Type,
-                                                  object: Any? = nil,
-                                                  queue: OperationQueue? = nil,
-                                                  using block: @escaping (T) -> Void) -> NotificationToken {
-
-        let token = addObserver(forName: T.notificationName, object: object, queue: queue) { (notification) in
+    func addObserver<T: TypedNotification>(for type: T.Type,
+                                           object: Any? = nil,
+                                           queue: OperationQueue? = nil,
+                                           using block: @escaping (T) -> Void) -> NotificationToken
+    {
+        let token = addObserver(forName: T.notificationName, object: object, queue: queue) { notification in
             guard let typedNotification = T.unpack(from: notification) else {
                 return
             }
@@ -169,12 +166,12 @@ extension NotificationCenter {
      - Returns:
          A `NotificationToken` object. The observer is automatically deregistered when this token object is deallocated, so be sure to retain a reference to it.
      */
-    public func addObserver<T: TypedNotification>(for type: T.Type,
-                                                  object: Any? = nil,
-                                                  queue: OperationQueue? = nil,
-                                                  filter: @escaping (T) -> Bool,
-                                                  using block: @escaping (T) -> Void) -> NotificationToken {
-
+    func addObserver<T: TypedNotification>(for type: T.Type,
+                                           object: Any? = nil,
+                                           queue: OperationQueue? = nil,
+                                           filter: @escaping (T) -> Bool,
+                                           using block: @escaping (T) -> Void) -> NotificationToken
+    {
         return addObserver(for: type, object: object, queue: queue) { notification in
             guard filter(notification) else {
                 return
@@ -198,12 +195,12 @@ extension NotificationCenter {
      - Returns:
          A `NotificationToken` object. The observer is automatically deregistered when this token object is deallocated, so be sure to retain a reference to it.
      */
-    public func addObserver<T: TypedNotification, V>(for type: T.Type,
-                                                     object: Any? = nil,
-                                                     queue: OperationQueue? = nil,
-                                                     map transform: @escaping (T) -> V,
-                                                     using block: @escaping (V) -> Void) -> NotificationToken {
-
+    func addObserver<T: TypedNotification, V>(for type: T.Type,
+                                              object: Any? = nil,
+                                              queue: OperationQueue? = nil,
+                                              map transform: @escaping (T) -> V,
+                                              using block: @escaping (V) -> Void) -> NotificationToken
+    {
         return addObserver(for: type, object: object, queue: queue) { notification in
             block(transform(notification))
         }
@@ -224,12 +221,12 @@ extension NotificationCenter {
      - Returns:
          A `NotificationToken` object. The observer is automatically deregistered when this token object is deallocated, so be sure to retain a reference to it.
      */
-    public func addObserver<T: TypedNotification, V>(for type: T.Type,
-                                                     object: Any? = nil,
-                                                     queue: OperationQueue? = nil,
-                                                     compactMap transform: @escaping (T) -> V?,
-                                                     using block: @escaping (V) -> Void) -> NotificationToken {
-
+    func addObserver<T: TypedNotification, V>(for type: T.Type,
+                                              object: Any? = nil,
+                                              queue: OperationQueue? = nil,
+                                              compactMap transform: @escaping (T) -> V?,
+                                              using block: @escaping (V) -> Void) -> NotificationToken
+    {
         return addObserver(for: type, object: object, queue: queue) { notification in
             guard let value = transform(notification) else {
                 return
@@ -244,7 +241,7 @@ extension NotificationCenter {
      - Parameters:
          - token: the token returned when adding the observer
      */
-    public func removeObserver(token: NotificationToken) {
+    func removeObserver(token: NotificationToken) {
         removeObserver(token.token)
     }
 }
